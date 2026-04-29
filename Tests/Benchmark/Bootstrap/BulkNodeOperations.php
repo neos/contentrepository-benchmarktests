@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Behat\Behat\Hook\Scope\AfterFeatureScope;
+use Behat\Hook\AfterFeature;
+use Behat\Hook\AfterScenario;
 use Behat\Step\When;
 use Neos\ContentRepository\Core\DimensionSpace\OriginDimensionSpacePoint;
 use Neos\ContentRepository\Core\Feature\NodeCreation\Command\CreateNodeAggregateWithNode;
@@ -10,6 +13,7 @@ use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindAncestorNodes
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindChildNodesFilter;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindDescendantNodesFilter;
 use Neos\ContentRepository\Core\SharedModel\Node\NodeAggregateId;
+use Neos\Utility\Files;
 
 trait BulkNodeOperations
 {
@@ -52,6 +56,7 @@ trait BulkNodeOperations
             sampleName: $sampleName,
             sample: new BenchmarkSample(
                 depth: $depth,
+                // breath: $breadth,
                 commandRuntime: $commandRuntime,
                 idQueryTime: $idQueryTime,
                 childrenQueryTime: $childrenQueryTime,
@@ -60,8 +65,16 @@ trait BulkNodeOperations
                 ancestorsQueryTime: $ancestorsQueryTime,
             )
         );
+    }
 
-        file_put_contents(FLOW_PATH_ROOT . 'benchmark.json', json_encode(BenchmarkSamples::getSamples(), JSON_PRETTY_PRINT));
+    #[AfterFeature]
+    public static function writeAbsoluteTime(AfterFeatureScope $ctx)
+    {
+        $featureName = pathinfo($ctx->getFeature()->getFile(), PATHINFO_FILENAME);
+
+        Files::createDirectoryRecursively($dir = FLOW_PATH_DATA . 'Benchmark-' . getmypid());
+
+        file_put_contents($dir . '/' . $featureName . '.json', json_encode(BenchmarkSamples::getSamples(), JSON_PRETTY_PRINT));
     }
 
     private function createDescendantNodes(NodeAggregateId $parentNodeAggregateId, NodeTypeName $nodeTypeName, int $depth, int $breadth, int $currentDepth, int &$nodeNumber): void
