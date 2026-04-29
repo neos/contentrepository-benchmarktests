@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Behat\Hook\BeforeFeature;
 use Behat\Step\Then;
 use Behat\Step\When;
 use PHPUnit\Framework\Assert;
@@ -14,6 +15,12 @@ trait BenchmarkSampling
         if ($beginSampling === 'true') {
             BenchmarkSamples::reset();
         }
+    }
+
+    #[BeforeFeature]
+    public static function resetSamplingForFeature(): void
+    {
+        BenchmarkSamples::reset();
     }
 
     #[Then('I expect linear runtime growth between samples :firstSample and :secondSample with expected factor :expectedFactor')]

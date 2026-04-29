@@ -14,7 +14,7 @@ final readonly class BenchmarkSampleGroup
         self $secondSample,
     ): BenchmarkSampleGroupDiff {
         if ($firstSample->groupName !== $secondSample->groupName) {
-            throw new \RuntimeException(sprintf('Samples must have the same named'), 1777406270);
+            throw new \RuntimeException(sprintf('Samples must have the same name'), 1777406270);
         }
 
         return new BenchmarkSampleGroupDiff(

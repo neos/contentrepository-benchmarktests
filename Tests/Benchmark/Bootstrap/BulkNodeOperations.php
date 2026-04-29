@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Hook\AfterFeature;
-use Behat\Hook\AfterScenario;
 use Behat\Step\When;
 use Neos\ContentRepository\Core\DimensionSpace\OriginDimensionSpacePoint;
 use Neos\ContentRepository\Core\Feature\NodeCreation\Command\CreateNodeAggregateWithNode;
@@ -23,6 +22,7 @@ trait BulkNodeOperations
         $nodeNumber = 1;
         $now = microtime(true);
         $this->createDescendantNodes(
+            baseNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
             parentNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
             nodeTypeName: NodeTypeName::fromString($nodeTypeName),
             depth: $depth,
@@ -32,39 +32,60 @@ trait BulkNodeOperations
         );
         $commandRuntime = (int)((microtime(true) - $now) * 1000);
 
-        $now = microtime(true);
-        $this->getCurrentSubgraph()->findNodeById(NodeAggregateId::fromString($parentNodeAggregateId));
-        $idQueryTime = (int)((microtime(true) - $now) * 1000000);
+        // ToDo include default subtree tag filtering to align to real world
+        $subgraphQueryTime = new BenchmarkSubgraphQueryTime(
+            idQueryTime: self::measureInMicroseconds(
+                fn () => $this->getCurrentSubgraph()->findNodeById(NodeAggregateId::fromString($parentNodeAggregateId))
+            ),
+            childrenQueryTime: self::measureInMicroseconds(
+                fn () => $this->getCurrentSubgraph()->findChildNodes(NodeAggregateId::fromString($parentNodeAggregateId), FindChildNodesFilter::create())
+            ),
+            parentQueryTime: self::measureInMicroseconds(
+                fn () => $this->getCurrentSubgraph()->findParentNode(NodeAggregateId::fromString($parentNodeAggregateId . '-1'))
+            ),
+            descendantsQueryTime: self::measureInMicroseconds(
+                fn () => $this->getCurrentSubgraph()->findDescendantNodes(NodeAggregateId::fromString($parentNodeAggregateId), FindDescendantNodesFilter::create())
+            ),
+            ancestorsQueryTime: self::measureInMicroseconds(
+                fn () => $this->getCurrentSubgraph()->findAncestorNodes(NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber), FindAncestorNodesFilter::create())
+            )
+        );
 
-        $now = microtime(true);
-        $this->getCurrentSubgraph()->findChildNodes(NodeAggregateId::fromString($parentNodeAggregateId), FindChildNodesFilter::create());
-        $childrenQueryTime = (int)((microtime(true) - $now) * 1000000);
-
-        $now = microtime(true);
-        $this->getCurrentSubgraph()->findParentNode(NodeAggregateId::fromString($parentNodeAggregateId . '-1'));
-        $parentQueryTime = (int)((microtime(true) - $now) * 1000000);
-
-        $now = microtime(true);
-        $this->getCurrentSubgraph()->findDescendantNodes(NodeAggregateId::fromString($parentNodeAggregateId), FindDescendantNodesFilter::create());
-        $descendantsQueryTime = (int)((microtime(true) - $now) * 1000000);
-
-        $now = microtime(true);
-        $this->getCurrentSubgraph()->findAncestorNodes(NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber), FindAncestorNodesFilter::create());
-        $ancestorsQueryTime = (int)((microtime(true) - $now) * 1000000);
+        $contentGraph = $this->currentContentRepository->getContentGraph($this->currentWorkspaceName);
+        $contentgraphQueryTime = new BenchmarkContentgraphQueryTime(
+            idQueryTime: self::measureInMicroseconds(
+                fn () => $contentGraph->findNodeAggregateById(NodeAggregateId::fromString($parentNodeAggregateId))
+            ),
+            childrenQueryTime: self::measureInMicroseconds(
+                fn () => $contentGraph->findChildNodeAggregates(NodeAggregateId::fromString($parentNodeAggregateId))
+            ),
+            parentQueryTime: self::measureInMicroseconds(
+                fn () => $contentGraph->findParentNodeAggregates(NodeAggregateId::fromString($parentNodeAggregateId . '-1'))
+            ),
+            ancestorsQueryTime: self::measureInMicroseconds(
+                fn () => $contentGraph->findAncestorNodeAggregateIds(NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber))
+            )
+        );
 
         BenchmarkSamples::addSample(
             sampleName: $sampleName,
             sample: new BenchmarkSample(
+                name: $sampleName,
                 depth: $depth,
-                // breath: $breadth,
+                breath: $breadth,
                 commandRuntime: $commandRuntime,
-                idQueryTime: $idQueryTime,
-                childrenQueryTime: $childrenQueryTime,
-                parentQueryTime: $parentQueryTime,
-                descendantsQueryTime: $descendantsQueryTime,
-                ancestorsQueryTime: $ancestorsQueryTime,
+                subgraphQueryTime: $subgraphQueryTime,
+                contentgraphQueryTime: $contentgraphQueryTime,
             )
         );
+    }
+
+    public static function measureInMicroseconds(\Closure $fn): int
+    {
+        $now = microtime(true);
+        $fn();
+        $time = (int)((microtime(true) - $now) * 1000000);
+        return $time;
     }
 
     #[AfterFeature]
@@ -77,10 +98,11 @@ trait BulkNodeOperations
         file_put_contents($dir . '/' . $featureName . '.json', json_encode(BenchmarkSamples::getSamples(), JSON_PRETTY_PRINT));
     }
 
-    private function createDescendantNodes(NodeAggregateId $parentNodeAggregateId, NodeTypeName $nodeTypeName, int $depth, int $breadth, int $currentDepth, int &$nodeNumber): void
+    private function createDescendantNodes(NodeAggregateId $baseNodeAggregateId, NodeAggregateId $parentNodeAggregateId, NodeTypeName $nodeTypeName, int $depth, int $breadth, int $currentDepth, int &$nodeNumber): void
     {
+        // TODO Using non uuid node aggregate id might be harder for the database to optimise? -> use pure UUIDs in testcase?
         for ($i = 1; $i <= $breadth; $i++) {
-            $nodeAggregateId = NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber);
+            $nodeAggregateId = NodeAggregateId::fromString($baseNodeAggregateId . '-' . $nodeNumber);
             $this->currentContentRepository->handle(
                 CreateNodeAggregateWithNode::create(
                     workspaceName: $this->currentWorkspaceName,
@@ -93,6 +115,7 @@ trait BulkNodeOperations
             $nodeNumber++;
             if ($currentDepth < $depth) {
                 $this->createDescendantNodes(
+                    baseNodeAggregateId: $baseNodeAggregateId,
                     parentNodeAggregateId: $nodeAggregateId,
                     nodeTypeName: $nodeTypeName,
                     depth: $depth,

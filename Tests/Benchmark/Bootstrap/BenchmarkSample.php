@@ -5,22 +5,15 @@ declare(strict_types=1);
 final readonly class BenchmarkSample
 {
     public function __construct(
+        public string $name,
         /** Depth of the created graph, for estimating recursive CTEs */
         public int $depth,
         /** Breath of the created graph */
-        // public int $breath,
+        public int $breath,
         /** Command runtime in milliseconds */
         public int $commandRuntime,
-        /** ID query time in microseconds */
-        public int $idQueryTime,
-        /** Child query time in microseconds */
-        public int $childrenQueryTime,
-        /** Parent query time in microseconds */
-        public int $parentQueryTime,
-        /** Descendants query time in microseconds */
-        public int $descendantsQueryTime,
-        /** Ancestors query time in microseconds */
-        public int $ancestorsQueryTime,
+        public BenchmarkSubgraphQueryTime $subgraphQueryTime,
+        public BenchmarkContentgraphQueryTime $contentgraphQueryTime,
     ) {
     }
 
@@ -28,14 +21,12 @@ final readonly class BenchmarkSample
     public static function fromArray(array $array): self
     {
         return new self(
+            name: $array['name'],
             depth: $array['depth'],
-            // breath: $array['breath'],
+            breath: $array['breath'],
             commandRuntime: $array['commandRuntime'],
-            idQueryTime: $array['idQueryTime'],
-            childrenQueryTime: $array['childrenQueryTime'],
-            parentQueryTime: $array['parentQueryTime'],
-            descendantsQueryTime: $array['descendantsQueryTime'],
-            ancestorsQueryTime: $array['ancestorsQueryTime'],
+            subgraphQueryTime: BenchmarkSubgraphQueryTime::fromArray($array['subgraphQueryTime']),
+            contentgraphQueryTime: BenchmarkContentgraphQueryTime::fromArray($array['contentgraphQueryTime']),
         );
     }
 
@@ -43,13 +34,20 @@ final readonly class BenchmarkSample
         self $firstSample,
         self $secondSample,
     ): BenchmarkSampleDiff {
+        if ($firstSample->name !== $secondSample->name) {
+            throw new \RuntimeException(sprintf('Samples must have the same name'), 1777406270);
+        }
+
         return new BenchmarkSampleDiff(
             commandRuntime: ValueDiff::calculate($firstSample->commandRuntime, $secondSample->commandRuntime),
-            idQueryTime: ValueDiff::calculate($firstSample->idQueryTime, $secondSample->idQueryTime),
-            childrenQueryTime: ValueDiff::calculate($firstSample->childrenQueryTime, $secondSample->childrenQueryTime),
-            parentQueryTime: ValueDiff::calculate($firstSample->parentQueryTime, $secondSample->parentQueryTime),
-            descendantsQueryTime: ValueDiff::calculate($firstSample->descendantsQueryTime, $secondSample->descendantsQueryTime),
-            ancestorsQueryTime: ValueDiff::calculate($firstSample->ancestorsQueryTime, $secondSample->ancestorsQueryTime),
+            subgraphQueryTime: BenchmarkSubgraphQueryTime::diff(
+                $firstSample->subgraphQueryTime,
+                $secondSample->subgraphQueryTime,
+            ),
+            contentgraphQueryTime: BenchmarkContentgraphQueryTime::diff(
+                $firstSample->contentgraphQueryTime,
+                $secondSample->contentgraphQueryTime,
+            ),
         );
     }
 }

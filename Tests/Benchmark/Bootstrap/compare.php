@@ -8,6 +8,10 @@ require_once __DIR__ . '/BenchmarkSampleGroup.php';
 require_once __DIR__ . '/BenchmarkSampleGroupDiff.php';
 require_once __DIR__ . '/BenchmarkSampleGroupDiffList.php';
 require_once __DIR__ . '/BenchmarkSampleGroupList.php';
+require_once __DIR__ . '/BenchmarkSubgraphQueryTime.php';
+require_once __DIR__ . '/BenchmarkSubgraphQueryTimeDiff.php';
+require_once __DIR__ . '/BenchmarkContentgraphQueryTime.php';
+require_once __DIR__ . '/BenchmarkContentgraphQueryTimeDiff.php';
 require_once __DIR__ . '/ValueDiff.php';
 
 const FLOW_PATH_DATA = '/Users/marchenryschultz/Code/core/neos-manufacture-90/Data/';

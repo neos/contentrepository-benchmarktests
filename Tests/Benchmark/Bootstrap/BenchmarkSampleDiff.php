@@ -6,11 +6,8 @@ final readonly class BenchmarkSampleDiff
 {
     public function __construct(
         public ValueDiff $commandRuntime,
-        public ValueDiff $idQueryTime,
-        public ValueDiff $childrenQueryTime,
-        public ValueDiff $parentQueryTime,
-        public ValueDiff $descendantsQueryTime,
-        public ValueDiff $ancestorsQueryTime,
+        public BenchmarkSubgraphQueryTimeDiff $subgraphQueryTime,
+        public BenchmarkContentgraphQueryTimeDiff $contentgraphQueryTime,
     ) {
     }
 }
