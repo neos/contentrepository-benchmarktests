@@ -5,6 +5,10 @@ declare(strict_types=1);
 use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Hook\AfterFeature;
 use Behat\Step\When;
+use Neos\ContentRepository\BenchmarkTests\BenchmarkContentgraphQueryTime;
+use Neos\ContentRepository\BenchmarkTests\BenchmarkSample;
+use Neos\ContentRepository\BenchmarkTests\BenchmarkSampleStaticRegistry;
+use Neos\ContentRepository\BenchmarkTests\BenchmarkSubgraphQueryTime;
 use Neos\ContentRepository\Core\DimensionSpace\OriginDimensionSpacePoint;
 use Neos\ContentRepository\Core\Feature\NodeCreation\Command\CreateNodeAggregateWithNode;
 use Neos\ContentRepository\Core\NodeType\NodeTypeName;
@@ -71,7 +75,7 @@ trait BulkNodeOperations
             )
         );
 
-        BenchmarkSamples::addSample(
+        BenchmarkSampleStaticRegistry::addSample(
             sampleName: $sampleName,
             sample: new BenchmarkSample(
                 name: $sampleName,
@@ -102,7 +106,7 @@ trait BulkNodeOperations
 
         Files::createDirectoryRecursively($dir = FLOW_PATH_DATA . 'Benchmark-' . getmypid());
 
-        file_put_contents($dir . '/' . $featureName . '.json', json_encode(BenchmarkSamples::getSamples(), JSON_PRETTY_PRINT));
+        file_put_contents($dir . '/' . $featureName . '.json', json_encode(BenchmarkSampleStaticRegistry::getSamples(), JSON_PRETTY_PRINT));
     }
 
     private function createDescendantNodes(NodeAggregateId $baseNodeAggregateId, NodeAggregateId $parentNodeAggregateId, NodeTypeName $nodeTypeName, int $depth, int $breadth, int $currentDepth, int &$nodeNumber): void

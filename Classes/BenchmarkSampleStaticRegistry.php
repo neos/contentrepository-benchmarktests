@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-final class BenchmarkSamples
+namespace Neos\ContentRepository\BenchmarkTests;
+
+final class BenchmarkSampleStaticRegistry
 {
     /**
      * @var array<string,BenchmarkSample>

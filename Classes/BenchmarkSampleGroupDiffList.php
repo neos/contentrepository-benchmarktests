@@ -1,18 +1,20 @@
 <?php
 declare(strict_types=1);
 
+namespace Neos\ContentRepository\BenchmarkTests;
+
 use Neos\Flow\Annotations as Flow;
 
 #[Flow\Proxy(false)]
-final readonly class BenchmarkSampleDiffList implements \JsonSerializable
+final readonly class BenchmarkSampleGroupDiffList implements \JsonSerializable
 {
-    /** @var list<BenchmarkSampleDiff> */
+    /** @var list<BenchmarkSampleGroupDiff> */
     public array $items;
 
     public function __construct(
-        BenchmarkSampleDiff ...$items
+        BenchmarkSampleGroupDiff ...$items
     ) {
-        $this->items = array_values($items);
+        $this->items = $items;
     }
 
     public function jsonSerialize(): mixed

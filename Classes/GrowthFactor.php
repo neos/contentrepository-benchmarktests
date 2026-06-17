@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Neos\ContentRepository\BenchmarkTests;
+
 /**
  * The expected growth factor when writing from or reading to the CR:
  * * linear for writing

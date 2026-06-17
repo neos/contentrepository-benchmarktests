@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Neos\ContentRepository\BenchmarkTests;
+
 /** In microseconds */
 final readonly class BenchmarkContentgraphQueryTime
 {

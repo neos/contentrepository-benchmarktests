@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Behat\Hook\BeforeFeature;
 use Behat\Step\Then;
 use Behat\Step\When;
+use Neos\ContentRepository\BenchmarkTests\BenchmarkSampleStaticRegistry;
+use Neos\ContentRepository\BenchmarkTests\GrowthFactor;
 use PHPUnit\Framework\Assert;
 
 trait BenchmarkSampling
@@ -13,14 +15,14 @@ trait BenchmarkSampling
     public function iDecideOnSamplingBegin(string $beginSampling): void
     {
         if ($beginSampling === 'true') {
-            BenchmarkSamples::reset();
+            BenchmarkSampleStaticRegistry::reset();
         }
     }
 
     #[BeforeFeature]
     public static function resetSamplingForFeature(): void
     {
-        BenchmarkSamples::reset();
+        BenchmarkSampleStaticRegistry::reset();
     }
 
     #[Then('I expect linear runtime growth between samples :firstSample and :secondSample with expected factor :expectedFactor')]
@@ -31,8 +33,8 @@ trait BenchmarkSampling
             return;
         }
         $actualNormalizedGrowth = (
-            BenchmarkSamples::getSample($secondSample)->commandRuntime
-            / BenchmarkSamples::getSample($firstSample)->commandRuntime
+            BenchmarkSampleStaticRegistry::getSample($secondSample)->commandRuntime
+            / BenchmarkSampleStaticRegistry::getSample($firstSample)->commandRuntime
         );
         Assert::assertLessThan(
             expected: $expectedGrowthFactor->getLinear(),
@@ -49,8 +51,8 @@ trait BenchmarkSampling
             return;
         }
         $actualNormalizedGrowth = (
-            BenchmarkSamples::getSample($secondSample)->idQueryTime
-            / BenchmarkSamples::getSample($firstSample)->idQueryTime
+            BenchmarkSampleStaticRegistry::getSample($secondSample)->idQueryTime
+            / BenchmarkSampleStaticRegistry::getSample($firstSample)->idQueryTime
         );
         Assert::assertLessThan(
             expected: $expectedGrowthFactor->getLogarithmic(),
@@ -67,8 +69,8 @@ trait BenchmarkSampling
             return;
         }
         $actualNormalizedGrowth = (
-            BenchmarkSamples::getSample($secondSample)->childrenQueryTime
-            / BenchmarkSamples::getSample($firstSample)->childrenQueryTime
+            BenchmarkSampleStaticRegistry::getSample($secondSample)->childrenQueryTime
+            / BenchmarkSampleStaticRegistry::getSample($firstSample)->childrenQueryTime
         );
         Assert::assertLessThan(
             expected: $expectedGrowthFactor->getLogarithmic(),
@@ -85,8 +87,8 @@ trait BenchmarkSampling
             return;
         }
         $actualNormalizedGrowth = (
-            BenchmarkSamples::getSample($secondSample)->parentQueryTime
-            / BenchmarkSamples::getSample($firstSample)->parentQueryTime
+            BenchmarkSampleStaticRegistry::getSample($secondSample)->parentQueryTime
+            / BenchmarkSampleStaticRegistry::getSample($firstSample)->parentQueryTime
         );
         Assert::assertLessThan(
             expected: $expectedGrowthFactor->getLogarithmic(),
@@ -102,8 +104,8 @@ trait BenchmarkSampling
         if ($firstSampleName === 'null' && $secondSampleName === 'null' && $expectedGrowthFactor === null) {
             return;
         }
-        $firstSample = BenchmarkSamples::getSample($firstSampleName);
-        $secondSample = BenchmarkSamples::getSample($secondSampleName);
+        $firstSample = BenchmarkSampleStaticRegistry::getSample($firstSampleName);
+        $secondSample = BenchmarkSampleStaticRegistry::getSample($secondSampleName);
         $actualGrowth = ($secondSample->descendantsQueryTime / $firstSample->descendantsQueryTime);
         $maximumExpectedGrowth = $expectedGrowthFactor->getLogarithmic($secondSample->depth - $firstSample->depth);
         Assert::assertLessThan(
@@ -120,8 +122,8 @@ trait BenchmarkSampling
         if ($firstSampleName === 'null' && $secondSampleName === 'null' && $expectedGrowthFactor === null) {
             return;
         }
-        $firstSample = BenchmarkSamples::getSample($firstSampleName);
-        $secondSample = BenchmarkSamples::getSample($secondSampleName);
+        $firstSample = BenchmarkSampleStaticRegistry::getSample($firstSampleName);
+        $secondSample = BenchmarkSampleStaticRegistry::getSample($secondSampleName);
         $actualGrowth = ($secondSample->descendantsQueryTime / $firstSample->descendantsQueryTime);
         $maximumExpectedGrowth = $expectedGrowthFactor->getLogarithmic($secondSample->depth - $firstSample->depth);
         Assert::assertLessThan(

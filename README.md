@@ -21,5 +21,5 @@ Absolute timings will be written to the `Data/Benchmark-{pid}` directory
 ## Diff two benchmarks
 
 ```sh
-php ./scripts/compare Benchmark-Before Benchmark-After
+flow crbenchmark:compare Benchmark-Before Benchmark-After
 ```

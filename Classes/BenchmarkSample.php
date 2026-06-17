@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Neos\ContentRepository\BenchmarkTests;
+
 final readonly class BenchmarkSample
 {
     public function __construct(
