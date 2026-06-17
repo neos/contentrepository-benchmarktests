@@ -10,6 +10,7 @@ final readonly class BenchmarkSubgraphQueryTime
         public int $childrenQueryTime,
         public int $parentQueryTime,
         public int $descendantsQueryTime,
+        public int $subtreeQueryTime,
         public int $ancestorsQueryTime,
     ) {
     }
@@ -22,6 +23,7 @@ final readonly class BenchmarkSubgraphQueryTime
             childrenQueryTime: $array['childrenQueryTime'],
             parentQueryTime: $array['parentQueryTime'],
             descendantsQueryTime: $array['descendantsQueryTime'],
+            subtreeQueryTime: $array['subtreeQueryTime'] ?? -1,
             ancestorsQueryTime: $array['ancestorsQueryTime'],
         );
     }
@@ -35,6 +37,7 @@ final readonly class BenchmarkSubgraphQueryTime
             childrenQueryTime: ValueDiff::calculate($firstSample->childrenQueryTime, $secondSample->childrenQueryTime),
             parentQueryTime: ValueDiff::calculate($firstSample->parentQueryTime, $secondSample->parentQueryTime),
             descendantsQueryTime: ValueDiff::calculate($firstSample->descendantsQueryTime, $secondSample->descendantsQueryTime),
+            subtreeQueryTime: ValueDiff::calculate($firstSample->subtreeQueryTime, $secondSample->subtreeQueryTime),
             ancestorsQueryTime: ValueDiff::calculate($firstSample->ancestorsQueryTime, $secondSample->ancestorsQueryTime),
         );
     }

@@ -9,6 +9,7 @@ final readonly class BenchmarkSubgraphQueryTimeDiff
         public ValueDiff $childrenQueryTime,
         public ValueDiff $parentQueryTime,
         public ValueDiff $descendantsQueryTime,
+        public ValueDiff $subtreeQueryTime,
         public ValueDiff $ancestorsQueryTime,
     ) {
     }

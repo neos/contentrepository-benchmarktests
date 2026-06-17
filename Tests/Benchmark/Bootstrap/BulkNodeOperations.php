@@ -11,6 +11,7 @@ use Neos\ContentRepository\Core\NodeType\NodeTypeName;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindAncestorNodesFilter;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindChildNodesFilter;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindDescendantNodesFilter;
+use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindSubtreeFilter;
 use Neos\ContentRepository\Core\SharedModel\Node\NodeAggregateId;
 use Neos\Utility\Files;
 
@@ -34,35 +35,38 @@ trait BulkNodeOperations
 
         // ToDo include default subtree tag filtering to align to real world
         $subgraphQueryTime = new BenchmarkSubgraphQueryTime(
-            idQueryTime: self::measureInMicroseconds(
+            idQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findNodeById(NodeAggregateId::fromString($parentNodeAggregateId))
             ),
-            childrenQueryTime: self::measureInMicroseconds(
+            childrenQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findChildNodes(NodeAggregateId::fromString($parentNodeAggregateId), FindChildNodesFilter::create())
             ),
-            parentQueryTime: self::measureInMicroseconds(
+            parentQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findParentNode(NodeAggregateId::fromString($parentNodeAggregateId . '-1'))
             ),
-            descendantsQueryTime: self::measureInMicroseconds(
+            descendantsQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findDescendantNodes(NodeAggregateId::fromString($parentNodeAggregateId), FindDescendantNodesFilter::create())
             ),
-            ancestorsQueryTime: self::measureInMicroseconds(
+            subtreeQueryTime: self::measureAverageInMicroseconds(
+                fn () => $this->getCurrentSubgraph()->findSubtree(NodeAggregateId::fromString($parentNodeAggregateId), FindSubtreeFilter::create())
+            ),
+            ancestorsQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findAncestorNodes(NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber), FindAncestorNodesFilter::create())
             )
         );
 
         $contentGraph = $this->currentContentRepository->getContentGraph($this->currentWorkspaceName);
         $contentgraphQueryTime = new BenchmarkContentgraphQueryTime(
-            idQueryTime: self::measureInMicroseconds(
+            idQueryTime: self::measureAverageInMicroseconds(
                 fn () => $contentGraph->findNodeAggregateById(NodeAggregateId::fromString($parentNodeAggregateId))
             ),
-            childrenQueryTime: self::measureInMicroseconds(
+            childrenQueryTime: self::measureAverageInMicroseconds(
                 fn () => $contentGraph->findChildNodeAggregates(NodeAggregateId::fromString($parentNodeAggregateId))
             ),
-            parentQueryTime: self::measureInMicroseconds(
+            parentQueryTime: self::measureAverageInMicroseconds(
                 fn () => $contentGraph->findParentNodeAggregates(NodeAggregateId::fromString($parentNodeAggregateId . '-1'))
             ),
-            ancestorsQueryTime: self::measureInMicroseconds(
+            ancestorsQueryTime: self::measureAverageInMicroseconds(
                 fn () => $contentGraph->findAncestorNodeAggregateIds(NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber))
             )
         );
@@ -80,11 +84,14 @@ trait BulkNodeOperations
         );
     }
 
-    public static function measureInMicroseconds(\Closure $fn): int
+    public static function measureAverageInMicroseconds(\Closure $fn): int
     {
+        $ITERATIONS = 6;
         $now = microtime(true);
-        $fn();
-        $time = (int)((microtime(true) - $now) * 1000000);
+        for ($i = 0; $i < $ITERATIONS; $i++) {
+            $fn();
+        }
+        $time = (int)(((microtime(true) - $now) / $ITERATIONS) * 1000000);
         return $time;
     }
 
