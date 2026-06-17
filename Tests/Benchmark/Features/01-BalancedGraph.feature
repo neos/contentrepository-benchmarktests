@@ -32,7 +32,7 @@ Feature: Run benchmark tests on a balanced graph, i.e. 10 children per parent
     And I expect logarithmic ancestor query time growth between samples <firstSample> and <secondSample> with expected factor <expectedFactor>
     Examples:
       | beginSampling | sampleName | depth | breadth | firstSample | secondSample | expectedFactor |
-      # 11 nodes
+      # 111 nodes
       | true          | twoLevels  | 2     | 10      | null        | null         | 0              |
       # 1,111 nodes
       | false         | fourLevels | 4     | 10      | twoLevels   | fourLevels   | 100            |

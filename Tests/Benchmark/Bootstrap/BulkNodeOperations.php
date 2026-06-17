@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Hook\AfterFeature;
+use Behat\Hook\AfterSuite;
 use Behat\Step\When;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkContentgraphQueryTime;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSample;
@@ -107,6 +108,16 @@ trait BulkNodeOperations
         Files::createDirectoryRecursively($dir = FLOW_PATH_DATA . 'Benchmark-' . getmypid());
 
         file_put_contents($dir . '/' . $featureName . '.json', json_encode(BenchmarkSampleStaticRegistry::getSamples(), JSON_PRETTY_PRINT));
+    }
+
+    #[AfterSuite]
+    public static function printWhereBenchmarksWereWritten()
+    {
+        fputs(STDOUT, sprintf(
+            "\n\n\nAbsolute times written to '%s'\nUse 'flow crbenchmark:compare Benchmark-Base %s' to compare two sets.\n",
+            FLOW_PATH_DATA . 'Benchmark-' . getmypid(),
+            'Benchmark-' . getmypid()
+        ));
     }
 
     private function createDescendantNodes(NodeAggregateId $baseNodeAggregateId, NodeAggregateId $parentNodeAggregateId, NodeTypeName $nodeTypeName, int $depth, int $breadth, int $currentDepth, int &$nodeNumber): void
