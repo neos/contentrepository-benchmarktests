@@ -43,12 +43,18 @@ class CrBenchmarkCommandController extends CommandController
             [
                 '<error>$0</error>',
                 '<comment>$0</comment>',
-                '<success>$0</success>',
+                '<success>$0 ;)</success>',
             ],
             $stringDiff
         );
 
-        $this->outputLine($hackyColored);
+        $withoutQuotesAndCommas = preg_replace(
+            ['/"([^"]+)":/', '/,\n/'],
+            ['$1:', PHP_EOL],
+            $hackyColored
+        );
+
+        $this->outputLine($withoutQuotesAndCommas);
 
         echo PHP_EOL;
     }
