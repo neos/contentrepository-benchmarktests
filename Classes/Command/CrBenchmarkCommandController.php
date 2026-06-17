@@ -28,10 +28,28 @@ class CrBenchmarkCommandController extends CommandController
             $secondBenchmark
         );
 
-        echo json_encode(
+        $stringDiff = json_encode(
             $diff,
             JSON_PRETTY_PRINT
         );
+
+        // Haha regex:O This will be added to the value objects later
+        $hackyColored = preg_replace(
+            [
+                '/"relativeDifference": [2-9]\d*\.\d+/',
+                '/"relativeDifference": 1\.\d+/',
+                '/"relativeDifference": 0\.\d+/'
+            ],
+            [
+                '<error>$0</error>',
+                '<comment>$0</comment>',
+                '<success>$0</success>',
+            ],
+            $stringDiff
+        );
+
+        $this->outputLine($hackyColored);
+
         echo PHP_EOL;
     }
 
