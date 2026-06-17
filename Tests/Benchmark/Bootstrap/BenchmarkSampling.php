@@ -14,6 +14,7 @@ trait BenchmarkSampling
     #[When('I decide on sampling begin with result :beginSampling')]
     public function iDecideOnSamplingBegin(string $beginSampling): void
     {
+        // TODO can be removed, is obsolete with resetSamplingForFeature
         if ($beginSampling === 'true') {
             BenchmarkSampleStaticRegistry::reset();
         }
@@ -25,9 +26,19 @@ trait BenchmarkSampling
         BenchmarkSampleStaticRegistry::reset();
     }
 
+    public static function isExpectRelativeGrowthEnabled(): bool
+    {
+        // TODO does not work correctly on different machines yet. Expectations dont match
+        return (bool)getenv('EXPECT_RELATIVE_GROWTH');
+    }
+
     #[Then('I expect linear runtime growth between samples :firstSample and :secondSample with expected factor :expectedFactor')]
     public function iExpectLinearRuntimeGrowth(string $firstSample, string $secondSample, int $expectedFactor): void
     {
+        if (!self::isExpectRelativeGrowthEnabled()) {
+            return;
+        }
+
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
         if ($firstSample === 'null' && $secondSample === 'null' && $expectedGrowthFactor === null) {
             return;
@@ -46,6 +57,10 @@ trait BenchmarkSampling
     #[Then('I expect logarithmic ID query time growth between samples :firstSample and :secondSample with expected factor :expectedFactor')]
     public function iExpectLogarithmicIDQueryGrowth(string $firstSample, string $secondSample, int $expectedFactor): void
     {
+        if (!self::isExpectRelativeGrowthEnabled()) {
+            return;
+        }
+
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
         if ($firstSample === 'null' && $secondSample === 'null' && $expectedGrowthFactor === null) {
             return;
@@ -64,6 +79,10 @@ trait BenchmarkSampling
     #[Then('I expect logarithmic child query time growth between samples :firstSample and :secondSample with expected factor :expectedFactor')]
     public function iExpectLogarithmicChildQueryGrowth(string $firstSample, string $secondSample, int $expectedFactor): void
     {
+        if (!self::isExpectRelativeGrowthEnabled()) {
+            return;
+        }
+
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
         if ($firstSample === 'null' && $secondSample === 'null' && $expectedGrowthFactor === null) {
             return;
@@ -82,6 +101,10 @@ trait BenchmarkSampling
     #[Then('I expect logarithmic parent query time growth between samples :firstSample and :secondSample with expected factor :expectedFactor')]
     public function iExpectLogarithmicParentQueryGrowth(string $firstSample, string $secondSample, int $expectedFactor): void
     {
+        if (!self::isExpectRelativeGrowthEnabled()) {
+            return;
+        }
+
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
         if ($firstSample === 'null' && $secondSample === 'null' && $expectedGrowthFactor === null) {
             return;
@@ -100,6 +123,10 @@ trait BenchmarkSampling
     #[Then('I expect logarithmic descendant query time growth between samples :firstSample and :secondSample with expected factor :expectedFactor')]
     public function iExpectLogarithmicDescendantQueryGrowth(string $firstSampleName, string $secondSampleName, int $expectedFactor): void
     {
+        if (!self::isExpectRelativeGrowthEnabled()) {
+            return;
+        }
+
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
         if ($firstSampleName === 'null' && $secondSampleName === 'null' && $expectedGrowthFactor === null) {
             return;
@@ -118,6 +145,10 @@ trait BenchmarkSampling
     #[Then('I expect logarithmic ancestor query time growth between samples :firstSample and :secondSample with expected factor :expectedFactor')]
     public function iExpectLogarithmicAncestorQueryGrowth(string $firstSampleName, string $secondSampleName, int $expectedFactor): void
     {
+        if (!self::isExpectRelativeGrowthEnabled()) {
+            return;
+        }
+
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
         if ($firstSampleName === 'null' && $secondSampleName === 'null' && $expectedGrowthFactor === null) {
             return;

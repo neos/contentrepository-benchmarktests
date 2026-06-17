@@ -22,5 +22,5 @@ Feature: Run benchmark tests on a broad graph, i.e. all children for a single pa
       | nodeTypeName    | "Neos.ContentRepository:Root" |
 
   Scenario: Create a broad graph of 11,111 nodes
-    When I create descendants of node "lady-eleonode-rootford" of type "Neos.ContentRepository.Testing:Node" and depth 1 and breadth 11110
+    And I create descendants of node "lady-eleonode-rootford" of type "Neos.ContentRepository.Testing:Node" and depth 1 and breadth 11110 as sample firstSample
 
