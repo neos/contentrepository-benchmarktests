@@ -8,8 +8,8 @@ Feature: Run benchmark tests on a deep graph, i.e. 1 child per parent
     'Neos.ContentRepository:Root': []
     'Neos.ContentRepository.Testing:Node': []
     """
-    And using identifier "default", I define a content repository
-    And I am in content repository "default"
+    And using identifier "t_benchmark", I define a content repository
+    And I am in content repository "t_benchmark"
     And I am user identified by "initiating-user-identifier"
     And the command CreateRootWorkspace is executed with payload:
       | Key                  | Value                |

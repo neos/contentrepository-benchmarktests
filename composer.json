@@ -11,7 +11,8 @@
     ],
     "require": {
         "neos/contentrepository-core": "^9.0",
-        "neos/contentrepository-testsuite": "^9.0"
+        "neos/contentrepository-testsuite": "^9.0",
+        "neos/contentrepositoryregistry": "^9.0"
     },
     "require-dev": {
     },
