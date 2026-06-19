@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Neos\ContentRepository\BenchmarkTests;
 
+use Neos\Flow\Annotations as Flow;
+
 /**
  * The expected growth factor when writing from or reading to the CR:
  * * linear for writing
  * * logarithmic with base 2 for reading (we expect databases to use binary trees)
  * with a grace factor of 1.2 to compensate execution time fluctuations
  */
+#[Flow\Proxy(false)]
 final readonly class GrowthFactor
 {
     private const GRACE_FACTOR = 1.2;

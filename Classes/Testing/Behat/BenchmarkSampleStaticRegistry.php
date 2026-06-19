@@ -6,6 +6,9 @@ namespace Neos\ContentRepository\BenchmarkTests\Testing\Behat;
 
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSample;
 
+use Neos\Flow\Annotations as Flow;
+
+#[Flow\Proxy(false)]
 final class BenchmarkSampleStaticRegistry
 {
     /**
