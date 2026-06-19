@@ -6,18 +6,25 @@ use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Hook\AfterFeature;
 use Behat\Hook\AfterSuite;
 use Behat\Step\When;
-use Neos\ContentRepository\BenchmarkTests\BenchmarkContentgraphQueryTime;
+use Neos\ContentRepository\BenchmarkTests\BenchmarkContentGraphQueryTime;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSample;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSampleStaticRegistry;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSubgraphQueryTime;
 use Neos\ContentRepository\Core\DimensionSpace\OriginDimensionSpacePoint;
 use Neos\ContentRepository\Core\Feature\NodeCreation\Command\CreateNodeAggregateWithNode;
+use Neos\ContentRepository\Core\Feature\NodeReferencing\Command\SetNodeReferences;
+use Neos\ContentRepository\Core\Feature\NodeReferencing\Dto\NodeReferencesForName;
+use Neos\ContentRepository\Core\Feature\NodeReferencing\Dto\NodeReferencesToWrite;
+use Neos\ContentRepository\Core\Feature\NodeReferencing\Dto\NodeReferenceToWrite;
 use Neos\ContentRepository\Core\NodeType\NodeTypeName;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindAncestorNodesFilter;
+use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindBackReferencesFilter;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindChildNodesFilter;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindDescendantNodesFilter;
+use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindReferencesFilter;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindSubtreeFilter;
 use Neos\ContentRepository\Core\SharedModel\Node\NodeAggregateId;
+use Neos\ContentRepository\Core\SharedModel\Node\ReferenceName;
 use Neos\Utility\Files;
 
 trait BulkNodeOperations
@@ -25,11 +32,22 @@ trait BulkNodeOperations
     #[When('I create descendants of node :parentNodeAggregateId of type :nodeTypeName and depth :depth and breadth :breadth as sample :sampleName')]
     public function createDescendants(string $parentNodeAggregateId, string $nodeTypeName, int $depth, int $breadth, string $sampleName): void
     {
-        $nodeNumber = 1;
+        $nodeNumber = 0;
         $now = microtime(true);
+        // create an additional node as deterministic and viable reference target
+        $this->currentContentRepository->handle(
+            CreateNodeAggregateWithNode::create(
+                workspaceName: $this->currentWorkspaceName,
+                nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber),
+                nodeTypeName: NodeTypeName::fromString($nodeTypeName),
+                originDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->currentDimensionSpacePoint),
+                parentNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
+            )
+        );
+        $nodeNumber++;
         $this->createDescendantNodes(
             baseNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
-            parentNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
+            parentNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-0'),
             nodeTypeName: NodeTypeName::fromString($nodeTypeName),
             depth: $depth,
             breadth: $breadth,
@@ -57,11 +75,23 @@ trait BulkNodeOperations
             ),
             ancestorsQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findAncestorNodes(NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber), FindAncestorNodesFilter::create())
+            ),
+            referenceQueryTime: self::measureAverageInMicroseconds(
+                fn () => $this->getCurrentSubgraph()->findReferences(
+                    nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber),
+                    filter: FindReferencesFilter::create(referenceName: ReferenceName::fromString('reference'))
+                ),
+            ),
+            backReferenceQueryTime: self::measureAverageInMicroseconds(
+                fn () => $this->getCurrentSubgraph()->findBackReferences(
+                    nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
+                    filter: FindBackReferencesFilter::create(referenceName: ReferenceName::fromString('reference'))
+                ),
             )
         );
 
         $contentGraph = $this->currentContentRepository->getContentGraph($this->currentWorkspaceName);
-        $contentgraphQueryTime = new BenchmarkContentgraphQueryTime(
+        $contentGraphQueryTime = new BenchmarkContentGraphQueryTime(
             idQueryTime: self::measureAverageInMicroseconds(
                 fn () => $contentGraph->findNodeAggregateById(NodeAggregateId::fromString($parentNodeAggregateId))
             ),
@@ -81,10 +111,10 @@ trait BulkNodeOperations
             sample: new BenchmarkSample(
                 name: $sampleName,
                 depth: $depth,
-                breath: $breadth,
+                breadth: $breadth,
                 commandRuntime: $commandRuntime,
                 subgraphQueryTime: $subgraphQueryTime,
-                contentgraphQueryTime: $contentgraphQueryTime,
+                contentGraphQueryTime: $contentGraphQueryTime,
             )
         );
     }
@@ -133,6 +163,21 @@ trait BulkNodeOperations
                     originDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->currentDimensionSpacePoint),
                     parentNodeAggregateId: $parentNodeAggregateId,
                 )
+            );
+            $this->currentContentRepository->handle(
+                SetNodeReferences::create(
+                    workspaceName: $this->currentWorkspaceName,
+                    sourceNodeAggregateId: $nodeAggregateId,
+                    sourceOriginDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->currentDimensionSpacePoint),
+                    references: NodeReferencesToWrite::create(
+                        NodeReferencesForName::fromReferences(
+                            name: ReferenceName::fromString('reference'),
+                            references: [
+                                NodeReferenceToWrite::fromTarget(NodeAggregateId::fromString($baseNodeAggregateId->value . '-0')),
+                            ],
+                        )
+                    ),
+                ),
             );
             $nodeNumber++;
             if ($currentDepth < $depth) {

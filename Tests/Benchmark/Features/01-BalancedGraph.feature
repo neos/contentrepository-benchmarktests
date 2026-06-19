@@ -6,7 +6,10 @@ Feature: Run benchmark tests on a balanced graph, i.e. 10 children per parent
     And using the following node types:
     """yaml
     'Neos.ContentRepository:Root': []
-    'Neos.ContentRepository.Testing:Node': []
+    'Neos.ContentRepository.Testing:Node':
+      references:
+        reference:
+          constraints: []
     """
     And using identifier "t_benchmark", I define a content repository
     And I am in content repository "t_benchmark"
@@ -32,7 +35,7 @@ Feature: Run benchmark tests on a balanced graph, i.e. 10 children per parent
     And I expect logarithmic ancestor query time growth between samples <firstSample> and <secondSample> with expected factor <expectedFactor>
     Examples:
       | beginSampling | sampleName | depth | breadth | firstSample | secondSample | expectedFactor |
-      # 111 nodes
+      # 112 nodes
       | true          | twoLevels  | 2     | 10      | null        | null         | 0              |
-      # 1,111 nodes
+      # 1,112 nodes
       | false         | fourLevels | 4     | 10      | twoLevels   | fourLevels   | 100            |

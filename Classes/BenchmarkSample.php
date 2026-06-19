@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Neos\ContentRepository\BenchmarkTests;
 
+use Neos\Flow\Annotations as Flow;
+
+#[Flow\Proxy(false)]
 final readonly class BenchmarkSample
 {
     public function __construct(
         public string $name,
         /** Depth of the created graph, for estimating recursive CTEs */
         public int $depth,
-        /** Breath of the created graph */
-        public int $breath,
+        /** Breadth of the created graph */
+        public int $breadth,
         /** Command runtime in milliseconds */
         public int $commandRuntime,
         public BenchmarkSubgraphQueryTime $subgraphQueryTime,
-        public BenchmarkContentgraphQueryTime $contentgraphQueryTime,
+        public BenchmarkContentGraphQueryTime $contentGraphQueryTime,
     ) {
     }
 
@@ -25,10 +28,10 @@ final readonly class BenchmarkSample
         return new self(
             name: $array['name'],
             depth: $array['depth'],
-            breath: $array['breath'],
+            breadth: $array['breadth'],
             commandRuntime: $array['commandRuntime'],
             subgraphQueryTime: BenchmarkSubgraphQueryTime::fromArray($array['subgraphQueryTime']),
-            contentgraphQueryTime: BenchmarkContentgraphQueryTime::fromArray($array['contentgraphQueryTime']),
+            contentGraphQueryTime: BenchmarkContentGraphQueryTime::fromArray($array['contentGraphQueryTime']),
         );
     }
 
@@ -46,9 +49,9 @@ final readonly class BenchmarkSample
                 $firstSample->subgraphQueryTime,
                 $secondSample->subgraphQueryTime,
             ),
-            contentgraphQueryTime: BenchmarkContentgraphQueryTime::diff(
-                $firstSample->contentgraphQueryTime,
-                $secondSample->contentgraphQueryTime,
+            contentgraphQueryTime: BenchmarkContentGraphQueryTime::diff(
+                $firstSample->contentGraphQueryTime,
+                $secondSample->contentGraphQueryTime,
             ),
         );
     }

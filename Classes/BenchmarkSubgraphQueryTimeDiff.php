@@ -13,6 +13,8 @@ final readonly class BenchmarkSubgraphQueryTimeDiff
         public ValueDiff $descendantsQueryTime,
         public ValueDiff $subtreeQueryTime,
         public ValueDiff $ancestorsQueryTime,
+        public ValueDiff $referenceQueryTime,
+        public ValueDiff $backReferenceQueryTime,
     ) {
     }
 }
