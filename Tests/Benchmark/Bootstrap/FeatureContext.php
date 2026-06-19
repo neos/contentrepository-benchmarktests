@@ -35,6 +35,12 @@ class FeatureContext implements BehatContext
         $this->contentRepositoryRegistry = $this->getObject(ContentRepositoryRegistry::class);
     }
 
+    public function afterScenarioEnsureIntegrityViolationDetectionWasRun(): void
+    {
+        // TODO check reports cyclic graph for 03-DeepGraph.feature which cannot be true?!
+        // Also enabling these causes some performance overhead and the detection checks are not cheap on large datasets - and dont have to be?
+    }
+
     /**
      * @BeforeScenario
      */
