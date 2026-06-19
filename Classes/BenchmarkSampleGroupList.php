@@ -8,7 +8,7 @@ use Neos\Flow\Annotations as Flow;
 #[Flow\Proxy(false)]
 final readonly class BenchmarkSampleGroupList
 {
-    /** @var list<BenchmarkSampleGroup> */
+    /** @var array<string,BenchmarkSampleGroup> */
     public array $items;
 
     public function __construct(

@@ -14,7 +14,7 @@ final readonly class BenchmarkSampleGroupDiffList implements \JsonSerializable
     public function __construct(
         BenchmarkSampleGroupDiff ...$items
     ) {
-        $this->items = $items;
+        $this->items = array_values($items);
     }
 
     public function jsonSerialize(): mixed

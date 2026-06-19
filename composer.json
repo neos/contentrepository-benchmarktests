@@ -9,6 +9,9 @@
     "license": [
         "GPL-3.0-or-later"
     ],
+    "scripts": {
+        "lint:phpstan": "../../bin/phpstan analyse Classes --level 8"
+    },
     "require": {
         "neos/contentrepository-core": "^9.0",
         "neos/contentrepository-testsuite": "^9.0",

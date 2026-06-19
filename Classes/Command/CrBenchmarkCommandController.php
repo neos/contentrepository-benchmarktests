@@ -14,12 +14,14 @@ class CrBenchmarkCommandController extends CommandController
     public function compareCommand(
         string $firstBenchmarkDirectoryName,
         string $secondBenchmarkDirectoryName,
-    ) {
+    ): void {
         $firstBenchmark = $this->parseBenchmark(
+            /** @phpstan-ignore-next-line */
             FLOW_PATH_DATA . $firstBenchmarkDirectoryName
         );
 
         $secondBenchmark = $this->parseBenchmark(
+            /** @phpstan-ignore-next-line */
             FLOW_PATH_DATA . $secondBenchmarkDirectoryName
         );
 
@@ -30,7 +32,7 @@ class CrBenchmarkCommandController extends CommandController
 
         $stringDiff = json_encode(
             $diff,
-            JSON_PRETTY_PRINT
+            JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
         );
 
         // Haha regex:O This will be added to the value objects later
@@ -46,15 +48,15 @@ class CrBenchmarkCommandController extends CommandController
                 '<success>$0 ;)</success>',
             ],
             $stringDiff
-        );
+        ) ?: '';
 
         $withoutQuotesAndCommas = preg_replace(
             ['/"([^"]+)":/', '/,\n/'],
             ['$1:', PHP_EOL],
             $hackyColored
-        );
+        ) ?: '';
 
-        $this->outputLine($withoutQuotesAndCommas);
+        $this->outputLine($withoutQuotesAndCommas ?: '');
 
         echo PHP_EOL;
     }

@@ -18,10 +18,10 @@ final readonly class BenchmarkSampleList
     public static function fromArray(array $array): self
     {
         return new self(
-            ...array_map(
+            ...array_values(array_map(
                 BenchmarkSample::fromArray(...),
                 $array
-            ),
+            )),
         );
     }
 
