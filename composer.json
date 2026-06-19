@@ -10,7 +10,8 @@
         "GPL-3.0-or-later"
     ],
     "scripts": {
-        "lint:phpstan": "../../bin/phpstan analyse Classes --level 8"
+        "lint:phpstan": "../../bin/phpstan analyse Classes --level 8",
+        "test:benchmark": "../../bin/behat -f progress --strict --no-interaction -c Tests/Benchmark/behat.yml.dist"
     },
     "require": {
         "neos/contentrepository-core": "^9.0",
