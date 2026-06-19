@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
+namespace Neos\ContentRepository\BenchmarkTests\Testing\Behat;
+
 use Behat\Hook\BeforeFeature;
 use Behat\Step\Then;
 use Behat\Step\When;
-use Neos\ContentRepository\BenchmarkTests\BenchmarkSampleStaticRegistry;
 use Neos\ContentRepository\BenchmarkTests\GrowthFactor;
 use PHPUnit\Framework\Assert;
 
@@ -40,7 +41,7 @@ trait BenchmarkSampling
         }
 
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
-        if ($firstSample === 'null' && $secondSample === 'null' && $expectedGrowthFactor === null) {
+        if ($firstSample === 'null' || $secondSample === 'null' || $expectedGrowthFactor === null) {
             return;
         }
         $actualNormalizedGrowth = (
@@ -62,12 +63,13 @@ trait BenchmarkSampling
         }
 
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
-        if ($firstSample === 'null' && $secondSample === 'null' && $expectedGrowthFactor === null) {
+        if ($firstSample === 'null' || $secondSample === 'null' || $expectedGrowthFactor === null) {
             return;
         }
+        // Todo apply same assertion to content graph query times?
         $actualNormalizedGrowth = (
-            BenchmarkSampleStaticRegistry::getSample($secondSample)->idQueryTime
-            / BenchmarkSampleStaticRegistry::getSample($firstSample)->idQueryTime
+            BenchmarkSampleStaticRegistry::getSample($secondSample)->subgraphQueryTime->idQueryTime
+            / BenchmarkSampleStaticRegistry::getSample($firstSample)->subgraphQueryTime->idQueryTime
         );
         Assert::assertLessThan(
             expected: $expectedGrowthFactor->getLogarithmic(),
@@ -84,12 +86,13 @@ trait BenchmarkSampling
         }
 
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
-        if ($firstSample === 'null' && $secondSample === 'null' && $expectedGrowthFactor === null) {
+        if ($firstSample === 'null' || $secondSample === 'null' || $expectedGrowthFactor === null) {
             return;
         }
+        // Todo apply same assertion to content graph query times?
         $actualNormalizedGrowth = (
-            BenchmarkSampleStaticRegistry::getSample($secondSample)->childrenQueryTime
-            / BenchmarkSampleStaticRegistry::getSample($firstSample)->childrenQueryTime
+            BenchmarkSampleStaticRegistry::getSample($secondSample)->subgraphQueryTime->childrenQueryTime
+            / BenchmarkSampleStaticRegistry::getSample($firstSample)->subgraphQueryTime->childrenQueryTime
         );
         Assert::assertLessThan(
             expected: $expectedGrowthFactor->getLogarithmic(),
@@ -106,12 +109,13 @@ trait BenchmarkSampling
         }
 
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
-        if ($firstSample === 'null' && $secondSample === 'null' && $expectedGrowthFactor === null) {
+        if ($firstSample === 'null' || $secondSample === 'null' || $expectedGrowthFactor === null) {
             return;
         }
+        // Todo apply same assertion to content graph query times?
         $actualNormalizedGrowth = (
-            BenchmarkSampleStaticRegistry::getSample($secondSample)->parentQueryTime
-            / BenchmarkSampleStaticRegistry::getSample($firstSample)->parentQueryTime
+            BenchmarkSampleStaticRegistry::getSample($secondSample)->subgraphQueryTime->parentQueryTime
+            / BenchmarkSampleStaticRegistry::getSample($firstSample)->subgraphQueryTime->parentQueryTime
         );
         Assert::assertLessThan(
             expected: $expectedGrowthFactor->getLogarithmic(),
@@ -128,12 +132,12 @@ trait BenchmarkSampling
         }
 
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
-        if ($firstSampleName === 'null' && $secondSampleName === 'null' && $expectedGrowthFactor === null) {
+        if ($firstSampleName === 'null' || $secondSampleName === 'null' || $expectedGrowthFactor === null) {
             return;
         }
         $firstSample = BenchmarkSampleStaticRegistry::getSample($firstSampleName);
         $secondSample = BenchmarkSampleStaticRegistry::getSample($secondSampleName);
-        $actualGrowth = ($secondSample->descendantsQueryTime / $firstSample->descendantsQueryTime);
+        $actualGrowth = ($secondSample->subgraphQueryTime->descendantsQueryTime / $firstSample->subgraphQueryTime->descendantsQueryTime);
         $maximumExpectedGrowth = $expectedGrowthFactor->getLogarithmic($secondSample->depth - $firstSample->depth);
         Assert::assertLessThan(
             expected: $maximumExpectedGrowth,
@@ -150,12 +154,13 @@ trait BenchmarkSampling
         }
 
         $expectedGrowthFactor = GrowthFactor::tryFrom($expectedFactor);
-        if ($firstSampleName === 'null' && $secondSampleName === 'null' && $expectedGrowthFactor === null) {
+        if ($firstSampleName === 'null' || $secondSampleName === 'null' || $expectedGrowthFactor === null) {
             return;
         }
         $firstSample = BenchmarkSampleStaticRegistry::getSample($firstSampleName);
         $secondSample = BenchmarkSampleStaticRegistry::getSample($secondSampleName);
-        $actualGrowth = ($secondSample->descendantsQueryTime / $firstSample->descendantsQueryTime);
+        // Todo apply same assertion to content graph query times?
+        $actualGrowth = ($secondSample->subgraphQueryTime->ancestorsQueryTime / $firstSample->subgraphQueryTime->ancestorsQueryTime);
         $maximumExpectedGrowth = $expectedGrowthFactor->getLogarithmic($secondSample->depth - $firstSample->depth);
         Assert::assertLessThan(
             expected: $maximumExpectedGrowth,

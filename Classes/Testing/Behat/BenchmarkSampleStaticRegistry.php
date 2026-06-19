@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Neos\ContentRepository\BenchmarkTests;
+namespace Neos\ContentRepository\BenchmarkTests\Testing\Behat;
+
+use Neos\ContentRepository\BenchmarkTests\BenchmarkSample;
 
 final class BenchmarkSampleStaticRegistry
 {
@@ -21,9 +23,9 @@ final class BenchmarkSampleStaticRegistry
         self::$samples[$sampleName] = $sample;
     }
 
-    public static function getSample(string $sampleName): ?BenchmarkSample
+    public static function getSample(string $sampleName): BenchmarkSample
     {
-        return self::$samples[$sampleName] ?? null;
+        return self::$samples[$sampleName] ?? throw new \RuntimeException(sprintf('Sample %s does not exist', $sampleName), 1781889148);
     }
 
     /**

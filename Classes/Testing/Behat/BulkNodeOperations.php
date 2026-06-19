@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+namespace Neos\ContentRepository\BenchmarkTests\Testing\Behat;
+
 use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Hook\AfterFeature;
 use Behat\Hook\AfterSuite;
 use Behat\Step\When;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkContentGraphQueryTime;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSample;
-use Neos\ContentRepository\BenchmarkTests\BenchmarkSampleStaticRegistry;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSubgraphQueryTime;
 use Neos\ContentRepository\Core\DimensionSpace\OriginDimensionSpacePoint;
 use Neos\ContentRepository\Core\Feature\NodeCreation\Command\CreateNodeAggregateWithNode;
@@ -35,12 +36,12 @@ trait BulkNodeOperations
         $nodeNumber = 0;
         $now = microtime(true);
         // create an additional node as deterministic and viable reference target
-        $this->currentContentRepository->handle(
+        $this->requireCurrentContentRepository()->handle(
             CreateNodeAggregateWithNode::create(
-                workspaceName: $this->currentWorkspaceName,
+                workspaceName: $this->requireCurrentWorkspaceName(),
                 nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber),
                 nodeTypeName: NodeTypeName::fromString($nodeTypeName),
-                originDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->currentDimensionSpacePoint),
+                originDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->requireCurrentDimensionSpacePoint()),
                 parentNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
             )
         );
@@ -90,7 +91,7 @@ trait BulkNodeOperations
             )
         );
 
-        $contentGraph = $this->currentContentRepository->getContentGraph($this->currentWorkspaceName);
+        $contentGraph = $this->requireCurrentContentRepository()->getContentGraph($this->requireCurrentWorkspaceName());
         $contentGraphQueryTime = new BenchmarkContentGraphQueryTime(
             idQueryTime: self::measureAverageInMicroseconds(
                 fn () => $contentGraph->findNodeAggregateById(NodeAggregateId::fromString($parentNodeAggregateId))
@@ -131,20 +132,25 @@ trait BulkNodeOperations
     }
 
     #[AfterFeature]
-    public static function writeAbsoluteTime(AfterFeatureScope $ctx)
+    public static function writeAbsoluteTime(AfterFeatureScope $ctx): void
     {
+        if ($ctx->getFeature()->getFile() === null) {
+            throw new \RuntimeException('Fatal, expects file for feature', 1781889609);
+        }
         $featureName = pathinfo($ctx->getFeature()->getFile(), PATHINFO_FILENAME);
 
+        /** @phpstan-ignore-next-line constant.notfound */
         Files::createDirectoryRecursively($dir = FLOW_PATH_DATA . 'Benchmark-' . getmypid());
 
         file_put_contents($dir . '/' . $featureName . '.json', json_encode(BenchmarkSampleStaticRegistry::getSamples(), JSON_PRETTY_PRINT));
     }
 
     #[AfterSuite]
-    public static function printWhereBenchmarksWereWritten()
+    public static function printWhereBenchmarksWereWritten(): void
     {
         fputs(STDOUT, sprintf(
             "\n\n\nAbsolute times written to '%s'\nUse 'flow crbenchmark:compare Benchmark-Base %s' to compare two sets.\n",
+            /** @phpstan-ignore-next-line constant.notfound */
             FLOW_PATH_DATA . 'Benchmark-' . getmypid(),
             'Benchmark-' . getmypid()
         ));
@@ -155,20 +161,20 @@ trait BulkNodeOperations
         // TODO Using non uuid node aggregate id might be harder for the database to optimise? -> use pure UUIDs in testcase?
         for ($i = 1; $i <= $breadth; $i++) {
             $nodeAggregateId = NodeAggregateId::fromString($baseNodeAggregateId . '-' . $nodeNumber);
-            $this->currentContentRepository->handle(
+            $this->requireCurrentContentRepository()->handle(
                 CreateNodeAggregateWithNode::create(
-                    workspaceName: $this->currentWorkspaceName,
+                    workspaceName: $this->requireCurrentWorkspaceName(),
                     nodeAggregateId: $nodeAggregateId,
                     nodeTypeName: $nodeTypeName,
-                    originDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->currentDimensionSpacePoint),
+                    originDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->requireCurrentDimensionSpacePoint()),
                     parentNodeAggregateId: $parentNodeAggregateId,
                 )
             );
-            $this->currentContentRepository->handle(
+            $this->requireCurrentContentRepository()->handle(
                 SetNodeReferences::create(
-                    workspaceName: $this->currentWorkspaceName,
+                    workspaceName: $this->requireCurrentWorkspaceName(),
                     sourceNodeAggregateId: $nodeAggregateId,
-                    sourceOriginDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->currentDimensionSpacePoint),
+                    sourceOriginDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->requireCurrentDimensionSpacePoint()),
                     references: NodeReferencesToWrite::create(
                         NodeReferencesForName::fromReferences(
                             name: ReferenceName::fromString('reference'),

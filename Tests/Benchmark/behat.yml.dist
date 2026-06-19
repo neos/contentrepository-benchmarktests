@@ -1,10 +1,7 @@
 default:
-  autoload:
-    '': "%paths.base%/Bootstrap"
   suites:
     cr:
       paths:
         - "%paths.base%/Features/"
       contexts:
-        - FeatureContext
-
+        - Neos\ContentRepository\BenchmarkTests\Testing\Behat\BenchmarkFeatureContext

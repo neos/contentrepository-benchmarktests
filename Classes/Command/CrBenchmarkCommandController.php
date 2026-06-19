@@ -16,12 +16,12 @@ class CrBenchmarkCommandController extends CommandController
         string $secondBenchmarkDirectoryName,
     ): void {
         $firstBenchmark = $this->parseBenchmark(
-            /** @phpstan-ignore-next-line */
+            /** @phpstan-ignore-next-line constant.notfound */
             FLOW_PATH_DATA . $firstBenchmarkDirectoryName
         );
 
         $secondBenchmark = $this->parseBenchmark(
-            /** @phpstan-ignore-next-line */
+            /** @phpstan-ignore-next-line constant.notfound */
             FLOW_PATH_DATA . $secondBenchmarkDirectoryName
         );
 
