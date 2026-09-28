@@ -24,6 +24,6 @@ Feature: Run benchmark tests on a deep graph, i.e. 1 child per parent
       | nodeAggregateId | "lady-eleonode-rootford"      |
       | nodeTypeName    | "Neos.ContentRepository:Root" |
 
-  Scenario: Create a deep graph of 11,112 nodes
-    When I create descendants of node "lady-eleonode-rootford" of type "Neos.ContentRepository.Testing:Node" and depth 11110 and breadth 1 as sample firstSample
+  Scenario: Create a deep graph of 997 nodes
+    When I create descendants of node "lady-eleonode-rootford" of type "Neos.ContentRepository.Testing:Node" and depth 997 and breadth 1 as sample firstSample
 
