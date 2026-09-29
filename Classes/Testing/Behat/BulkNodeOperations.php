@@ -75,11 +75,11 @@ trait BulkNodeOperations
                 fn () => $this->getCurrentSubgraph()->findSubtree(NodeAggregateId::fromString($parentNodeAggregateId), FindSubtreeFilter::create())
             ),
             ancestorsQueryTime: self::measureAverageInMicroseconds(
-                fn () => $this->getCurrentSubgraph()->findAncestorNodes(NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber), FindAncestorNodesFilter::create())
+                fn () => $this->getCurrentSubgraph()->findAncestorNodes(NodeAggregateId::fromString($parentNodeAggregateId . '-' . ($nodeNumber - 1)), FindAncestorNodesFilter::create())
             ),
             referenceQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findReferences(
-                    nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber),
+                    nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-' . ($nodeNumber - 1)),
                     filter: FindReferencesFilter::create(referenceName: ReferenceName::fromString('reference'))
                 ),
             ),
@@ -103,7 +103,7 @@ trait BulkNodeOperations
                 fn () => $contentGraph->findParentNodeAggregates(NodeAggregateId::fromString($parentNodeAggregateId . '-1'))
             ),
             ancestorsQueryTime: self::measureAverageInMicroseconds(
-                fn () => $contentGraph->findAncestorNodeAggregateIds(NodeAggregateId::fromString($parentNodeAggregateId . '-' . $nodeNumber))
+                fn () => $contentGraph->findAncestorNodeAggregateIds(NodeAggregateId::fromString($parentNodeAggregateId . '-' . ($nodeNumber - 1)))
             )
         );
 
