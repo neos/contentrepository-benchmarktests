@@ -8,11 +8,14 @@ use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Hook\AfterFeature;
 use Behat\Hook\AfterSuite;
 use Behat\Step\When;
+use Neos\ContentRepository\BenchmarkTests\BenchmarkCommandExecutionTime;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkContentGraphQueryTime;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSample;
 use Neos\ContentRepository\BenchmarkTests\BenchmarkSubgraphQueryTime;
 use Neos\ContentRepository\Core\DimensionSpace\OriginDimensionSpacePoint;
 use Neos\ContentRepository\Core\Feature\NodeCreation\Command\CreateNodeAggregateWithNode;
+use Neos\ContentRepository\Core\Feature\NodeMove\Command\MoveNodeAggregate;
+use Neos\ContentRepository\Core\Feature\NodeMove\Dto\RelationDistributionStrategy;
 use Neos\ContentRepository\Core\Feature\NodeReferencing\Command\SetNodeReferences;
 use Neos\ContentRepository\Core\Feature\NodeReferencing\Dto\NodeReferencesForName;
 use Neos\ContentRepository\Core\Feature\NodeReferencing\Dto\NodeReferencesToWrite;
@@ -107,6 +110,30 @@ trait BulkNodeOperations
             )
         );
 
+        // Create a target node to move to
+        $this->requireCurrentContentRepository()->handle(
+            CreateNodeAggregateWithNode::create(
+                workspaceName: $this->requireCurrentWorkspaceName(),
+                nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-move-target'),
+                nodeTypeName: NodeTypeName::fromString($nodeTypeName),
+                originDimensionSpacePoint: OriginDimensionSpacePoint::fromDimensionSpacePoint($this->requireCurrentDimensionSpacePoint()),
+                parentNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
+            )
+        );
+        $commandExecutionTime = new BenchmarkCommandExecutionTime(
+            moveNodeRuntime: self::measureInMicroseconds(
+                fn () => $this->requireCurrentContentRepository()->handle(
+                    MoveNodeAggregate::create(
+                        workspaceName: $this->requireCurrentWorkspaceName(),
+                        dimensionSpacePoint: $this->requireCurrentDimensionSpacePoint(),
+                        nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-0'),
+                        relationDistributionStrategy: RelationDistributionStrategy::default(),
+                        newParentNodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-move-target'),
+                    )
+                )
+            ),
+        );
+
         BenchmarkSampleStaticRegistry::addSample(
             sampleName: $sampleName,
             sample: new BenchmarkSample(
@@ -116,8 +143,16 @@ trait BulkNodeOperations
                 commandRuntime: $commandRuntime,
                 subgraphQueryTime: $subgraphQueryTime,
                 contentGraphQueryTime: $contentGraphQueryTime,
+                commandExecutionTime: $commandExecutionTime,
             )
         );
+    }
+
+    public static function measureInMicroseconds(\Closure $fn): int
+    {
+        $now = microtime(true);
+            $fn();
+        return (int)((microtime(true) - $now) * 1000000);
     }
 
     public static function measureAverageInMicroseconds(\Closure $fn): int

@@ -13,6 +13,7 @@ final readonly class BenchmarkSampleDiff
         public ValueDiff $commandRuntime,
         public BenchmarkSubgraphQueryTimeDiff $subgraphQueryTime,
         public BenchmarkContentgraphQueryTimeDiff $contentgraphQueryTime,
+        public BenchmarkCommandExecutionTimeDiff $commandExecutionTime,
     ) {
     }
 }

@@ -19,6 +19,7 @@ final readonly class BenchmarkSample
         public int $commandRuntime,
         public BenchmarkSubgraphQueryTime $subgraphQueryTime,
         public BenchmarkContentGraphQueryTime $contentGraphQueryTime,
+        public BenchmarkCommandExecutionTime $commandExecutionTime,
     ) {
     }
 
@@ -32,6 +33,7 @@ final readonly class BenchmarkSample
             commandRuntime: $array['commandRuntime'],
             subgraphQueryTime: BenchmarkSubgraphQueryTime::fromArray($array['subgraphQueryTime']),
             contentGraphQueryTime: BenchmarkContentGraphQueryTime::fromArray($array['contentGraphQueryTime']),
+            commandExecutionTime: BenchmarkCommandExecutionTime::fromArray($array['commandExecutionTime']),
         );
     }
 
@@ -52,6 +54,10 @@ final readonly class BenchmarkSample
             contentgraphQueryTime: BenchmarkContentGraphQueryTime::diff(
                 $firstSample->contentGraphQueryTime,
                 $secondSample->contentGraphQueryTime,
+            ),
+            commandExecutionTime: BenchmarkCommandExecutionTime::diff(
+                $firstSample->commandExecutionTime,
+                $secondSample->commandExecutionTime,
             ),
         );
     }
