@@ -20,6 +20,7 @@ use Neos\ContentRepository\Core\Feature\NodeReferencing\Command\SetNodeReference
 use Neos\ContentRepository\Core\Feature\NodeReferencing\Dto\NodeReferencesForName;
 use Neos\ContentRepository\Core\Feature\NodeReferencing\Dto\NodeReferencesToWrite;
 use Neos\ContentRepository\Core\Feature\NodeReferencing\Dto\NodeReferenceToWrite;
+use Neos\ContentRepository\Core\Feature\SubtreeTagging\Dto\SubtreeTag;
 use Neos\ContentRepository\Core\NodeType\NodeTypeName;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindAncestorNodesFilter;
 use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindBackReferencesFilter;
@@ -107,7 +108,10 @@ trait BulkNodeOperations
             ),
             ancestorsQueryTime: self::measureAverageInMicroseconds(
                 fn () => $contentGraph->findAncestorNodeAggregateIds(NodeAggregateId::fromString($parentNodeAggregateId . '-' . ($nodeNumber - 1)))
-            )
+            ),
+            taggedByQueryTime: self::measureAverageInMicroseconds(
+                fn () => $contentGraph->findNodeAggregatesTaggedBy(SubtreeTag::fromString('disabled'))
+            ),
         );
 
         // Create a target node to move to

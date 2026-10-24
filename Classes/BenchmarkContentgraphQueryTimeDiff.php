@@ -14,6 +14,7 @@ final readonly class BenchmarkContentgraphQueryTimeDiff
         public ValueDiff $childrenQueryTime,
         public ValueDiff $parentQueryTime,
         public ValueDiff $ancestorsQueryTime,
+        public ValueDiff $taggedByQueryTime,
     ) {
     }
 }

@@ -15,6 +15,7 @@ final readonly class BenchmarkContentGraphQueryTime
         public int $childrenQueryTime,
         public int $parentQueryTime,
         public int $ancestorsQueryTime,
+        public int $taggedByQueryTime,
     ) {
     }
 
@@ -26,6 +27,7 @@ final readonly class BenchmarkContentGraphQueryTime
             childrenQueryTime: $array['childrenQueryTime'],
             parentQueryTime: $array['parentQueryTime'],
             ancestorsQueryTime: $array['ancestorsQueryTime'],
+            taggedByQueryTime: $array['taggedByQueryTime'],
         );
     }
 
@@ -38,6 +40,7 @@ final readonly class BenchmarkContentGraphQueryTime
             childrenQueryTime: ValueDiff::calculate($firstSample->childrenQueryTime, $secondSample->childrenQueryTime),
             parentQueryTime: ValueDiff::calculate($firstSample->parentQueryTime, $secondSample->parentQueryTime),
             ancestorsQueryTime: ValueDiff::calculate($firstSample->ancestorsQueryTime, $secondSample->ancestorsQueryTime),
+            taggedByQueryTime: ValueDiff::calculate($firstSample->taggedByQueryTime, $secondSample->taggedByQueryTime),
         );
     }
 }
