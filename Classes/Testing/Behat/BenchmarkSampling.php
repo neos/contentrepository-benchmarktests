@@ -49,7 +49,7 @@ trait BenchmarkSampling
             / BenchmarkSampleStaticRegistry::getSample($firstSample)->commandRuntime
         );
         Assert::assertLessThan(
-            expected: $expectedGrowthFactor->getLinear(),
+            maximum: $expectedGrowthFactor->getLinear(),
             actual: $actualNormalizedGrowth,
             message: 'Runtime growth appears to be non-linear, normalized growth is ' . $actualNormalizedGrowth . '.'
         );
@@ -72,7 +72,7 @@ trait BenchmarkSampling
             / BenchmarkSampleStaticRegistry::getSample($firstSample)->subgraphQueryTime->idQueryTime
         );
         Assert::assertLessThan(
-            expected: $expectedGrowthFactor->getLogarithmic(),
+            maximum: $expectedGrowthFactor->getLogarithmic(),
             actual: $actualNormalizedGrowth,
             message: 'ID query time growth appears to be non-logarithmic, normalized growth is ' . $actualNormalizedGrowth . '.'
         );
@@ -95,7 +95,7 @@ trait BenchmarkSampling
             / BenchmarkSampleStaticRegistry::getSample($firstSample)->subgraphQueryTime->childrenQueryTime
         );
         Assert::assertLessThan(
-            expected: $expectedGrowthFactor->getLogarithmic(),
+            maximum: $expectedGrowthFactor->getLogarithmic(),
             actual: $actualNormalizedGrowth,
             message: 'Children query time growth appears to be non-logarithmic, normalized growth is ' . $actualNormalizedGrowth . '.'
         );
@@ -118,7 +118,7 @@ trait BenchmarkSampling
             / BenchmarkSampleStaticRegistry::getSample($firstSample)->subgraphQueryTime->parentQueryTime
         );
         Assert::assertLessThan(
-            expected: $expectedGrowthFactor->getLogarithmic(),
+            maximum: $expectedGrowthFactor->getLogarithmic(),
             actual: $actualNormalizedGrowth,
             message: 'Parent query time growth appears to be non-logarithmic, normalized growth is ' . $actualNormalizedGrowth . '.'
         );
@@ -140,7 +140,7 @@ trait BenchmarkSampling
         $actualGrowth = ($secondSample->subgraphQueryTime->descendantsQueryTime / $firstSample->subgraphQueryTime->descendantsQueryTime);
         $maximumExpectedGrowth = $expectedGrowthFactor->getLogarithmic($secondSample->depth - $firstSample->depth);
         Assert::assertLessThan(
-            expected: $maximumExpectedGrowth,
+            maximum: $maximumExpectedGrowth,
             actual: $actualGrowth,
             message: 'Descendant query time growth appears to be non-logarithmic, normalized growth is ' . $actualGrowth . ' instead of maximum expected ' . $maximumExpectedGrowth . '.'
         );
@@ -163,7 +163,7 @@ trait BenchmarkSampling
         $actualGrowth = ($secondSample->subgraphQueryTime->ancestorsQueryTime / $firstSample->subgraphQueryTime->ancestorsQueryTime);
         $maximumExpectedGrowth = $expectedGrowthFactor->getLogarithmic($secondSample->depth - $firstSample->depth);
         Assert::assertLessThan(
-            expected: $maximumExpectedGrowth,
+            maximum: $maximumExpectedGrowth,
             actual: $actualGrowth,
             message: 'Ancestor query time growth appears to be non-logarithmic, normalized growth is ' . $actualGrowth . ' instead of maximum expected ' . $maximumExpectedGrowth . '.'
         );
