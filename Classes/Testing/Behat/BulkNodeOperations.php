@@ -61,56 +61,86 @@ trait BulkNodeOperations
         );
         $commandRuntime = (int)((microtime(true) - $now) * 1000);
 
+        $nodeOnTwoLevelsAboveLeavesIfPossible = NodeAggregateId::fromString($parentNodeAggregateId . '-' . ($depth - min($depth, 2)));
+        $nodeLevelTwo = NodeAggregateId::fromString($parentNodeAggregateId . '-2');
+
         // ToDo include default subtree tag filtering to align to real world
         $subgraphQueryTime = new BenchmarkSubgraphQueryTime(
             idQueryTime: self::measureAverageInMicroseconds(
-                fn () => $this->getCurrentSubgraph()->findNodeById(NodeAggregateId::fromString($parentNodeAggregateId))
+                fn () => $this->getCurrentSubgraph()->findNodeById(
+                    NodeAggregateId::fromString($parentNodeAggregateId)
+                ) !== null ?: throw new \RuntimeException('FindById query failed')
             ),
             childrenQueryTime: self::measureAverageInMicroseconds(
-                fn () => $this->getCurrentSubgraph()->findChildNodes(NodeAggregateId::fromString($parentNodeAggregateId), FindChildNodesFilter::create())
+                fn () => $this->getCurrentSubgraph()->findChildNodes(
+                    NodeAggregateId::fromString($parentNodeAggregateId)
+                    , FindChildNodesFilter::create()
+                )->count() > 0 ?: throw new \RuntimeException('Children query failed')
             ),
             parentQueryTime: self::measureAverageInMicroseconds(
-                fn () => $this->getCurrentSubgraph()->findParentNode(NodeAggregateId::fromString($parentNodeAggregateId . '-1'))
+                fn () => $this->getCurrentSubgraph()->findParentNode(
+                    NodeAggregateId::fromString($parentNodeAggregateId . '-1')
+                ) !== null ?: throw new \RuntimeException('Parent query failed')
             ),
             descendantsQueryTime: self::measureAverageInMicroseconds(
-                fn () => $this->getCurrentSubgraph()->findDescendantNodes(NodeAggregateId::fromString($parentNodeAggregateId), FindDescendantNodesFilter::create())
+                fn () => $this->getCurrentSubgraph()->findDescendantNodes(
+                    $nodeOnTwoLevelsAboveLeavesIfPossible,
+                    FindDescendantNodesFilter::create()
+                )->count() > 0 ?: throw new \RuntimeException('Descendents query failed')
             ),
             subtreeQueryTime: self::measureAverageInMicroseconds(
-                fn () => $this->getCurrentSubgraph()->findSubtree(NodeAggregateId::fromString($parentNodeAggregateId), FindSubtreeFilter::create())
+                fn () => $this->getCurrentSubgraph()->findSubtree(
+                    $nodeOnTwoLevelsAboveLeavesIfPossible,
+                    FindSubtreeFilter::create()
+                )->children->count() > 0 ?: throw new \RuntimeException('Subtree query failed')
             ),
             ancestorsQueryTime: self::measureAverageInMicroseconds(
-                fn () => $this->getCurrentSubgraph()->findAncestorNodes(NodeAggregateId::fromString($parentNodeAggregateId . '-' . ($nodeNumber - 1)), FindAncestorNodesFilter::create())
+                // nodeNumber "2" because we are looking for a node on level 2 with 2 parents
+                fn () => $this->getCurrentSubgraph()->findAncestorNodes(
+                    $nodeLevelTwo,
+                    FindAncestorNodesFilter::create()
+                )->count() > 0 ?: throw new \RuntimeException('Ancestor query failed')
             ),
             referenceQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findReferences(
                     nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-' . ($nodeNumber - 1)),
                     filter: FindReferencesFilter::create(referenceName: ReferenceName::fromString('reference'))
-                ),
+                )->count() > 0 ?: throw new \RuntimeException('Reference query failed'),
             ),
             backReferenceQueryTime: self::measureAverageInMicroseconds(
                 fn () => $this->getCurrentSubgraph()->findBackReferences(
-                    nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId),
+                    nodeAggregateId: NodeAggregateId::fromString($parentNodeAggregateId . '-' . '0'),
                     filter: FindBackReferencesFilter::create(referenceName: ReferenceName::fromString('reference'))
-                ),
+                )->count() > 0 ?: throw new \RuntimeException('BackReference query failed'),
             )
         );
 
         $contentGraph = $this->requireCurrentContentRepository()->getContentGraph($this->requireCurrentWorkspaceName());
         $contentGraphQueryTime = new BenchmarkContentGraphQueryTime(
             idQueryTime: self::measureAverageInMicroseconds(
-                fn () => $contentGraph->findNodeAggregateById(NodeAggregateId::fromString($parentNodeAggregateId))
+                fn () => $contentGraph->findNodeAggregateById(
+                    NodeAggregateId::fromString($parentNodeAggregateId)
+                ) !== null ?: throw new \RuntimeException('FindById query failed')
             ),
             childrenQueryTime: self::measureAverageInMicroseconds(
-                fn () => $contentGraph->findChildNodeAggregates(NodeAggregateId::fromString($parentNodeAggregateId))
+                fn () => $contentGraph->findChildNodeAggregates(
+                    NodeAggregateId::fromString($parentNodeAggregateId)
+                )->count() > 0 ?: throw new \RuntimeException('Children query failed')
             ),
             parentQueryTime: self::measureAverageInMicroseconds(
-                fn () => $contentGraph->findParentNodeAggregates(NodeAggregateId::fromString($parentNodeAggregateId . '-1'))
+                fn () => $contentGraph->findParentNodeAggregates(
+                    $nodeLevelTwo
+                ) !== null ?: throw new \RuntimeException('Parent query failed')
             ),
             ancestorsQueryTime: self::measureAverageInMicroseconds(
-                fn () => $contentGraph->findAncestorNodeAggregateIds(NodeAggregateId::fromString($parentNodeAggregateId . '-' . ($nodeNumber - 1)))
+                fn () => $contentGraph->findAncestorNodeAggregateIds(
+                    $nodeLevelTwo
+                )->count() > 0 ?: throw new \RuntimeException('Ancestor query failed')
             ),
             taggedByQueryTime: self::measureAverageInMicroseconds(
-                fn () => $contentGraph->findNodeAggregatesTaggedBy(SubtreeTag::fromString('disabled'))
+                fn () => $contentGraph->findNodeAggregatesTaggedBy(
+                    SubtreeTag::fromString('disabled')
+                )
             ),
         );
 
@@ -155,7 +185,7 @@ trait BulkNodeOperations
     public static function measureInMicroseconds(\Closure $fn): int
     {
         $now = microtime(true);
-            $fn();
+        $fn();
         return (int)((microtime(true) - $now) * 1000000);
     }
 
